@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tone – Email Transformer</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=General+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0a0f;
+        --surface: #16161d;
+        --surface-hover: #1e1e28;
+        --fg: #ffffff;
+        --fg-muted: #a0a0b8;
+        --accent: #7c3aed;
+        --accent-bright: #a78bfa;
+        --success: #10b981;
+        --error: #ef4444;
+        --border: rgba(255, 255, 255, 0.08);
+        --glow: rgba(124, 58, 237, 0.4);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          "General Sans",
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.6;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* Animated Background */
+      .bg-gradient {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        opacity: 0.6;
+        background:
+          radial-gradient(
+            circle at 20% 50%,
+            rgba(124, 58, 237, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(139, 92, 246, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 20%,
+            rgba(167, 139, 250, 0.08) 0%,
+            transparent 50%
+          );
+        animation: bgShift 20s ease-in-out infinite;
+      }
+
+      @keyframes bgShift {
+        0%,
+        100% {
+          transform: scale(1) translateY(0);
+        }
+        50% {
+          transform: scale(1.1) translateY(-20px);
+        }
+      }
+
+      .grain {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0.03;
+        z-index: 1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 32px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Header */
+      header {
+        padding: 60px 0 40px;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+      }
+
+      h1 {
+        font-family: "Clash Display", sans-serif;
+        font-size: 48px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.03em;
+        position: relative;
+      }
+
+      .tagline {
+        font-size: 14px;
+        color: var(--fg-muted);
+        margin-top: 8px;
+        font-weight: 400;
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--success);
+        backdrop-filter: blur(10px);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--success);
+        border-radius: 50%;
+        box-shadow: 0 0 12px var(--success);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* Main */
+      main {
+        padding: 40px 0 80px;
+      }
+
+      .form-wrapper {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 48px;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+        backdrop-filter: blur(20px);
+      }
+
+      .form-wrapper::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(124, 58, 237, 0.5),
+          transparent
+        );
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 28px;
+      }
+
+      .field-group {
+        display: grid;
+        gap: 10px;
+      }
+
+      label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fg-muted);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      input,
+      textarea {
+        font-family:
+          "General Sans",
+          -apple-system,
+          sans-serif;
+        font-size: 16px;
+        padding: 16px 20px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--fg);
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+      }
+
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow:
+          0 0 0 4px rgba(124, 58, 237, 0.1),
+          0 8px 24px rgba(124, 58, 237, 0.15);
+        transform: translateY(-1px);
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(160, 160, 184, 0.4);
+      }
+
+      textarea {
+        min-height: 160px;
+        resize: vertical;
+        line-height: 1.7;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      /* Mode Toggle */
+      .mode-section {
+        margin-top: 8px;
+      }
+
+      .mode-toggle {
+        display: flex;
+        gap: 12px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        position: relative;
+      }
+
+      .mode-option {
+        flex: 1;
+        padding: 14px 28px;
+        border: none;
+        background: transparent;
+        font-family: "General Sans", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 10px;
+        color: var(--fg-muted);
+        position: relative;
+        z-index: 1;
+      }
+
+      .mode-option.active {
+        background: linear-gradient(
+          135deg,
+          var(--accent),
+          var(--accent-bright)
+        );
+        color: white;
+        box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+      }
+
+      .mode-option:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--fg);
+      }
+
+      /* Submit Button */
+      .submit-btn {
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(
+          135deg,
+          var(--accent) 0%,
+          var(--accent-bright) 100%
+        );
+        color: white;
+        border: none;
+        font-family: "Clash Display", sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        margin-top: 12px;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+      }
+
+      .submit-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .submit-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(124, 58, 237, 0.4);
+      }
+
+      .submit-btn:hover:not(:disabled)::before {
+        left: 100%;
+      }
+
+      .submit-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .submit-btn.loading {
+        background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+      }
+
+      .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto;
+      }
+
+      .submit-btn.loading .loading-spinner {
+        display: block;
+      }
+
+      .submit-btn.loading .btn-text {
+        display: none;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Result */
+      .result-container {
+        margin-top: 48px;
+        opacity: 0;
+        display: none;
+        animation: fadeInUp 0.6s ease-out forwards;
+      }
+
+      .result-container.show {
+        display: block;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .result-title {
+        font-family: "Clash Display", sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--fg);
+      }
+
+      .latency-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--success);
+      }
+
+      .result-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 40px;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+      }
+
+      .result-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          var(--accent-bright),
+          var(--accent)
+        );
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          background-position: 0% 0%;
+        }
+        50% {
+          background-position: 100% 0%;
+        }
+      }
+
+      .result-email {
+        font-family: "General Sans", sans-serif;
+        font-size: 16px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        color: var(--fg);
+      }
+
+      .action-buttons {
+        position: absolute;
+        top: 32px;
+        right: 32px;
+        display: flex;
+        gap: 12px;
+      }
+
+      .icon-btn {
+        padding: 10px 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        font-family: "General Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        color: var(--fg-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .icon-btn:hover {
+        background: rgba(124, 58, 237, 0.2);
+        border-color: var(--accent);
+        color: var(--accent-bright);
+        transform: translateY(-2px);
+      }
+
+      .icon-btn.copied {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: var(--success);
+        color: var(--success);
+      }
+
+      /* Error */
+      .error-message {
+        padding: 20px 24px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        border-radius: 12px;
+        font-size: 14px;
+        margin-top: 20px;
+        display: none;
+        backdrop-filter: blur(10px);
+      }
+
+      .error-message.show {
+        display: block;
+        animation: shake 0.4s ease;
+      }
+
+      /* Footer */
+      footer {
+        padding: 40px 0;
+        text-align: center;
+        font-size: 13px;
+        color: var(--fg-muted);
+        position: relative;
+        z-index: 2;
+      }
+
+      .footer-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .model-badge {
+        padding: 6px 14px;
+        background: rgba(124, 58, 237, 0.1);
+        border: 1px solid rgba(124, 58, 237, 0.2);
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent-bright);
+      }
+
+      /* Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(0.95);
+        }
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-10px);
+        }
+        75% {
+          transform: translateX(10px);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 20px;
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        .header-content {
+          flex-direction: column;
+          gap: 20px;
+          align-items: flex-start;
+        }
+
+        .form-wrapper {
+          padding: 32px 24px;
+        }
+
+        .row {
+          grid-template-columns: 1fr;
+        }
+
+        .result-card {
+          padding: 32px 24px;
+        }
+
+        .action-buttons {
+          position: static;
+          margin-top: 20px;
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-gradient"></div>
+    <div class="grain"></div>
+
+    <header>
+      <div class="container">
+        <div class="header-content">
+          <div>
+            <h1>Tone</h1>
+            <div class="tagline">AI-powered email tone transformation</div>
+          </div>
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            <span id="statusText">Checking...</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="form-wrapper">
+          <form id="emailForm" class="form-grid">
+            <div class="field-group">
+              <label for="subject">Subject</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                placeholder="Enter email subject"
+                required
+              />
+            </div>
+
+            <div class="row">
+              <div class="field-group">
+                <label for="recipient">Recipient</label>
+                <input
+                  type="text"
+                  id="recipient"
+                  name="recipient"
+                  placeholder="Recipient name"
+                  required
+                />
+              </div>
+              <div class="field-group">
+                <label for="sender">Sender</label>
+                <input
+                  type="text"
+                  id="sender"
+                  name="sender"
+                  placeholder="Your name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="body">Email Body</label>
+              <textarea
+                id="body"
+                name="body"
+                placeholder="Write your email here and let AI transform the tone..."
+                required
+              ></textarea>
+            </div>
+
+            <div class="field-group mode-section">
+              <label>Transformation Mode</label>
+              <div class="mode-toggle">
+                <button
+                  type="button"
+                  class="mode-option active"
+                  data-mode="formal"
+                >
+                  ✨ Formal
+                </button>
+                <button type="button" class="mode-option" data-mode="casual">
+                  💬 Casual
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              <span class="btn-text">Transform Email</span>
+              <div class="loading-spinner"></div>
+            </button>
+          </form>
+
+          <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+          <div class="result-header">
+            <div class="result-title">Transformed Email</div>
+            <div class="latency-badge">⚡ <span id="latency"></span></div>
+          </div>
+          <div class="result-card">
+            <div class="action-buttons">
+              <button class="icon-btn" id="copyBtn">📋 Copy</button>
+            </div>
+            <pre class="result-email" id="resultEmail"></pre>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <span>Powered by</span>
+          <span class="model-badge">T5-tone-formalizer</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // API Configuration
+      const API_URL = "https://dxv39-tone.hf.space";
+
+      // State
+      let selectedMode = "formal";
+
+      // Elements
+      const form = document.getElementById("emailForm");
+      const submitBtn = form.querySelector(".submit-btn");
+      const modeOptions = document.querySelectorAll(".mode-option");
+      const resultContainer = document.getElementById("resultContainer");
+      const resultEmail = document.getElementById("resultEmail");
+      const latencyEl = document.getElementById("latency");
+      const errorMessage = document.getElementById("errorMessage");
+      const copyBtn = document.getElementById("copyBtn");
+      const statusText = document.getElementById("statusText");
+
+      // Check API health on load
+      async function checkHealth() {
+        try {
+          const response = await fetch(`${API_URL}/`);
+          const data = await response.json();
+          if (data.status === "online") {
+            statusText.textContent = "Online";
+          }
+        } catch (error) {
+          statusText.textContent = "Offline";
+          console.error("Health check failed:", error);
+        }
+      }
+
+      // Mode toggle with smooth transition
+      modeOptions.forEach((option) => {
+        option.addEventListener("click", () => {
+          modeOptions.forEach((opt) => opt.classList.remove("active"));
+          option.classList.add("active");
+          selectedMode = option.dataset.mode;
+        });
+      });
+
+      // Form submission
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Hide previous results/errors
+        resultContainer.classList.remove("show");
+        errorMessage.classList.remove("show");
+
+        // Get form data
+        const formData = new FormData(form);
+        const data = {
+          subject: formData.get("subject"),
+          recipient: formData.get("recipient"),
+          sender: formData.get("sender"),
+          body: formData.get("body"),
+          mode: selectedMode,
+        };
+
+        // Loading state
+        submitBtn.disabled = true;
+        submitBtn.classList.add("loading");
+
+        try {
+          const response = await fetch(`${API_URL}/transform-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Request failed");
+          }
+
+          const result = await response.json();
+
+          // Display result with animation
+          resultEmail.textContent = result.formatted_email;
+          latencyEl.textContent = `${result.latency_ms}ms`;
+
+          setTimeout(() => {
+            resultContainer.classList.add("show");
+          }, 100);
+
+          setTimeout(() => {
+            resultContainer.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+            });
+          }, 300);
+        } catch (error) {
+          errorMessage.textContent = `⚠️ ${error.message}`;
+          errorMessage.classList.add("show");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove("loading");
+        }
+      });
+
+      copyBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(resultEmail.textContent);
+          copyBtn.innerHTML = "✓ Copied";
+          copyBtn.classList.add("copied");
+
+          setTimeout(() => {
+            copyBtn.innerHTML = "📋 Copy";
+            copyBtn.classList.remove("copied");
+          }, 2000);
+        } catch (error) {
+          console.error("Failed to copy:", error);
+        }
+      });
+
+      checkHealth();
+    </script>
+  </body>
+</html>
