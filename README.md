@@ -6,7 +6,6 @@
 [![Hugging Face](https://img.shields.io/badge/🤗-Hugging%20Face-yellow)](https://huggingface.co/spaces/dxv39/tone-formalizer)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![ToneForge AI Screenshot](https://via.placeholder.com/1200x600/0a0a0f/7c3aed?text=ToneForge+AI)
 
 ---
 
@@ -455,3 +454,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you found this helpful, please ⭐ star the repo!
 
 </div>
+
